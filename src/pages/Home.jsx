@@ -1,15 +1,52 @@
+import { ErrorDialog } from "@/components/error-dialog";
 import { MovieSection } from "@/components/movieSection";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
 } from "@/components/ui/carousel";
+import moviesService from "@/services/moviesService";
 import Autoplay from "embla-carousel-autoplay";
+import { useEffect, useState } from "react";
 
 function Home() {
+  const [movieCategories] = useState([
+    {
+      apiCall: "popular",
+      title: "Em alta",
+    },
+    {
+      apiCall: "top_rated",
+      title: "Melhor avaliados",
+    },
+    {
+      apiCall: "upcoming",
+      title: "Chegando em breve",
+    },
+    {
+      apiCall: "now_playing",
+      title: "Em cartaz",
+    },
+  ]);
+  const [movieLists, setMovieLists] = useState([]);
+  const [error, setError] = useState(null);
+
+  const fetchMovies = async () => {
+      const moviesData = await Promise.all(
+        movieCategories.map((item) => getMovies(item.apiCall))
+      );
+      setMovieLists(moviesData);
+      moviesData.map((item) => item.error && setError(item.error));
+  };
+
+  useEffect(() => {
+    fetchMovies(); // Chama a função uma única vez quando o componente é montado
+  }, []); // Array vazio como dependência para garantir execução única
+
   return (
     <main className="bg-background flex flex-1 flex-grow flex-col pb-8">
-      <section className="w-full">
+      {console.log("MovieLists", movieLists)}
+      <section className="w-full z-0">
         <h1></h1>
         <Carousel
           className=""
@@ -40,10 +77,28 @@ function Home() {
           </CarouselContent>
         </Carousel>
       </section>
-      <MovieSection title="Em Alta" first />
-      <MovieSection title="Ação" />
+      {error ? (
+        <ErrorDialog title={'Erro ao carregar filmes'} error={error} />
+      ) : (
+        movieLists.map((item, index) => (
+          <MovieSection
+            key={index}
+            title={movieCategories[index].title}
+            first={index === 0}
+            movies={item}
+          />
+        ))
+      )}
     </main>
   );
 }
+
+const getMovies = async (apiCall) => {
+  if (!apiCall) {
+    console.log("API call is undefined");
+    return;
+  }
+  return await moviesService.getMoviesList(apiCall);
+};
 
 export default Home;
