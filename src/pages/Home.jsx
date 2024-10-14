@@ -16,6 +16,10 @@ function Home() {
       title: "Em alta",
     },
     {
+      apiCall: "listed",
+      title: "Sua Lista",
+    },
+    {
       apiCall: "top_rated",
       title: "Melhor avaliados",
     },
@@ -27,6 +31,11 @@ function Home() {
       apiCall: "now_playing",
       title: "Em cartaz",
     },
+
+    {
+      apiCall: "watched",
+      title: "Assistidos",
+    }
   ]);
   const [movieLists, setMovieLists] = useState([]);
   const [error, setError] = useState(null);
@@ -89,6 +98,7 @@ function Home() {
           />
         ))
       )}
+
     </main>
   );
 }
@@ -98,7 +108,14 @@ const getMovies = async (apiCall) => {
     console.log("API call is undefined");
     return;
   }
+  if (apiCall === 'listed' || apiCall === 'watched') {
+    return await getSavedMoviesInfos(apiCall);
+  }
   return await moviesService.getMoviesList(apiCall);
 };
+
+const getSavedMoviesInfos = async (type) => {
+  return await moviesService.getSavedMoviesInfos(type);
+}
 
 export default Home;

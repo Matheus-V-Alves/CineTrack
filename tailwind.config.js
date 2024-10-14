@@ -18,7 +18,7 @@ export default {
         secondary: '#483078',
         details: '#604878',
         other: '#906090',
-        background: '#303030',
+        background: '#0f0f0f',
         text: '#f1f1f1',
       }
   	}

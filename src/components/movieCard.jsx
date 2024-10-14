@@ -5,7 +5,7 @@ export const MovieCard = ({ movie, id }) => {
     <Link to={`/movie/${id}`}>
       <div
         style={{
-          backgroundImage: `url(${import.meta.env.VITE_API_IMAGE_URL}${movie.poster_path})`,
+          backgroundImage: `url(${import.meta.env.VITE_API_IMAGE_URL}w600_and_h900_bestv2/${movie.poster_path})`,
         }}
         className={`bg-cover bg-no-repeat rounded-md w-48 h-72 cursor-pointer`}
       >
