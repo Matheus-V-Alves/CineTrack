@@ -1,5 +1,4 @@
-/* eslint-disable react/prop-types */
-import { MovieCard } from "./movieCard";
+import { MovieCard } from "./movie-card";
 import {
   Carousel,
   CarouselContent,

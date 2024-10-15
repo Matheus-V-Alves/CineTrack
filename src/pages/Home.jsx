@@ -1,5 +1,5 @@
 import { ErrorDialog } from "@/components/error-dialog";
-import { MovieSection } from "@/components/movieSection";
+import { MovieSection } from "@/components/movie-section";
 import {
   Carousel,
   CarouselContent,
@@ -87,7 +87,7 @@ function Home() {
         </Carousel>
       </section>
       {error ? (
-        <ErrorDialog title={'Erro ao carregar filmes'} error={error} />
+        <ErrorDialog title={'Erro ao carregar filmes'} error={error}/>
       ) : (
         movieLists.map((item, index) => (
           <MovieSection
@@ -119,3 +119,4 @@ const getSavedMoviesInfos = async (type) => {
 }
 
 export default Home;
+

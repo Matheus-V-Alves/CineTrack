@@ -8,7 +8,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-export const ErrorDialog = ({ error, title }) => {
+export const ErrorDialog = ({ errorAction=reloadPage, error, title, actionName='Tentar novamente' }) => {
     console.log(error)
   return (
     <AlertDialog defaultOpen={true}>
@@ -18,8 +18,8 @@ export const ErrorDialog = ({ error, title }) => {
           <AlertDialogDescription className="text-red-600">{error.message}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogAction onClick={reloadPage} className="bg-black/30 hover:bg-black/40">
-            Tentar Novamente
+          <AlertDialogAction onClick={() => errorAction()} className="bg-black/30 hover:bg-black/40">
+            {actionName}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -27,6 +27,10 @@ export const ErrorDialog = ({ error, title }) => {
   );
 };
 
+
 const reloadPage = () => {
   window.location.reload();
-};
+}
+
+
+
