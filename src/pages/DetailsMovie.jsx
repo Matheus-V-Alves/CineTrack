@@ -138,7 +138,7 @@ function DetailsMovie() {
                 year: "numeric",
                 month: "long",
                 day: "numeric",
-              })}
+              })} - {movie?.runtime} min {movie?.origin_country && <span>- <img className="w-6 lg:w-7 -mt-1 lg:-mt-0.5 inline-block" src={`https://flagsapi.com/${movie?.origin_country}/flat/32.png`} /></span>}
             </p>
           </div>
           <div className="flex flex-row-reverse lg:flex-row gap-6 text-text">
@@ -184,7 +184,7 @@ function DetailsMovie() {
             </p>
           ))}
         </div>
-        <p className="text-text font-medium text-md lg:text-lg selection:bg-black">
+        <p className="text-text text-md lg:text-lg text-justify selection:bg-black">
           {movie?.overview}
         </p>
       </section>
