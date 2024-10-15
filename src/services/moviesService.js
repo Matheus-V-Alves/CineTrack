@@ -63,5 +63,27 @@ class MoviesService {
     let savedMovies = await this.getSavedMovies(type);
     return savedMovies.some((movieId) => movieId === id);
   }
+
+  async getWatchProviders(id) {
+    const url = `/movie/${id}/watch/providers`;
+    const result = await resolve(api.get(url));
+    if(result.data.results["BR"]) {
+      result.data = result.data.results["BR"];
+    }else{
+      result.data = {};
+    }
+    return result;
+  }
+
+  async searchMovies(query, page = 1) {
+    const url = `/search/movie?${this.defaultLanguage}&query=${query}&page=${page}`;
+    let response = await resolve(api.get(url));
+    return response;
+  }
+
+  async getRecommendedMovies(id) {
+    const url = `/movie/${id}/recommendations?${this.defaultLanguage}`;
+    return await resolve(api.get(url));
+  }
 }
 export default new MoviesService();

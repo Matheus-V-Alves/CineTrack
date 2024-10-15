@@ -1,5 +1,5 @@
 import { useToast } from "@/hooks/use-toast";
-import moviesService from "@/services/moviesService";
+import moviesService from "@/services/MoviesService";
 import { Bookmark, BookmarkCheck, Eye, EyeOff } from "lucide-react";
 import { useEffect, useState } from "react";
 export const MovieActions = ({ movieId }) => {

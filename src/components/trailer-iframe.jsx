@@ -1,6 +1,7 @@
-import moviesService from "@/services/moviesService";
+import moviesService from "@/services/MoviesService";
 import { useEffect, useLayoutEffect, useState } from "react";
 import { ErrorDialog } from "./error-dialog";
+import { Loading } from "./loading";
 
 function useWindowSize() {
   const [width, setWidth] = useState(0);
@@ -18,6 +19,7 @@ function useWindowSize() {
 export const TrailerIframe = ({ movieId }) => {
   const [videos, setVideos] = useState(null);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
   const width = useWindowSize();
 
   useEffect(() => {
@@ -28,9 +30,14 @@ export const TrailerIframe = ({ movieId }) => {
         setError(videosData.error);
       }
       setVideos(videosData.data || []);
+      setLoading(false);
     };
     fetchVideos();
   }, [movieId]);
+
+  if (loading) {
+    return <Loading transparent={true} />;
+  }
 
   return (
     <div
@@ -40,6 +47,7 @@ export const TrailerIframe = ({ movieId }) => {
           width < 768 ? (width / 16) * 9 : (((width / 4) * 3) / 16) * 9,
       }}
     >
+            {console.log(videos)}
       {error ? (
         <ErrorDialog title="Erro ao carregar o trailer" error={error} />
       ) : (
