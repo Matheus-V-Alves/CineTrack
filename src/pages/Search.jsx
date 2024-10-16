@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useLayoutEffect, useState } from "react";
 import { SearchContext } from "../context/SearchContext";
 import moviesService from "@/services/MoviesService";
 import { MovieCard } from "@/components/movie-card";
@@ -11,18 +11,36 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { ScrollRestoration, useParams } from "react-router-dom";
+
+function useWindowSize() {
+  const [width, setWidth] = useState(0);
+  useLayoutEffect(() => {
+    function updateWidth() {
+      setWidth(window.innerWidth);
+    }
+    window.addEventListener("resize", updateWidth);
+    updateWidth();
+    return () => window.removeEventListener("resize", updateWidth);
+  }, []);
+  return width;
+}
 
 function Search() {
+  const { searchTag } = useParams();
   const { searchTerm } = useContext(SearchContext);
   const [movies, setMovies] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const width = useWindowSize();
 
   useEffect(() => {
-    if (searchTerm) {
+    if (searchTag) {
+      fetchTag(searchTag, currentPage);
+    } else if (searchTerm) {
       fetchMovies(searchTerm, currentPage);
     }
-  }, [searchTerm, currentPage]);
+  }, [searchTag, searchTerm, currentPage]);
 
   const fetchMovies = (searchTerm, page) => {
     moviesService.searchMovies(searchTerm, page).then((query) => {
@@ -30,23 +48,43 @@ function Search() {
       console.log("Página:", query.data.page);
       console.log("Total de páginas:", query.data.total_pages);
       setMovies(query.data.results);
-      setTotalPages(query.data.total_pages); // Atualiza o total de páginas
+      setTotalPages(query.data.total_pages);
     });
   };
 
+  const fetchTag = async (tag, page) => {
+    let tagSearch = null;
+    if (tag === "trending") {
+      tagSearch = await moviesService.getTrendingMovies(page);
+    } else {
+      tagSearch = await moviesService.getMoviesList(tag, page);
+    }
+
+    if (tagSearch.results) {
+      console.log("Filmes encontrados:", tagSearch.results);
+      setMovies(tagSearch.results);
+      setTotalPages(tagSearch.total_pages);
+    }
+  };
+
   const handlePageChange = (page) => {
-    setCurrentPage(page); // Atualiza a página atual
+    document.documentElement.scrollTop = 0;
+    setCurrentPage(page);
   };
 
   const renderPaginationItems = () => {
     const pages = [];
-    const maxPagesToShow = 2; // Define quantas páginas ao redor da atual você quer mostrar
+    const maxPagesToShow = width < 768 ? 1 : 2;
 
-    // Adiciona a primeira página com elipses, se necessário
     if (currentPage > maxPagesToShow + 1) {
       pages.push(
         <PaginationItem key={1}>
-          <PaginationLink onClick={() => handlePageChange(1)}>1</PaginationLink>
+          <PaginationLink
+            onClick={() => handlePageChange(1)}
+            className="select-none cursor-pointer"
+          >
+            1
+          </PaginationLink>
         </PaginationItem>
       );
       if (currentPage > maxPagesToShow + 2) {
@@ -58,25 +96,26 @@ function Search() {
       }
     }
 
-    // Páginas próximas à atual
     for (
       let i = Math.max(1, currentPage - maxPagesToShow);
       i <= Math.min(totalPages, currentPage + maxPagesToShow);
       i++
     ) {
       pages.push(
-        <PaginationItem key={i} active={i === currentPage}>
+        <PaginationItem key={i} active={`${i === currentPage}`}>
           <PaginationLink
             onClick={() => handlePageChange(i)}
-            className={i === currentPage ? "bg-secondary select-none cursor-pointer" : "select-none cursor-pointer"}
+            className={
+              i === currentPage
+                ? "bg-secondary select-none cursor-pointer"
+                : "select-none cursor-pointer"
+            }
           >
             {i}
           </PaginationLink>
         </PaginationItem>
       );
     }
-
-    // Adiciona a última página com elipses, se necessário
     if (currentPage < totalPages - maxPagesToShow) {
       if (currentPage < totalPages - maxPagesToShow - 1) {
         pages.push(
@@ -87,7 +126,10 @@ function Search() {
       }
       pages.push(
         <PaginationItem key={totalPages}>
-          <PaginationLink onClick={() => handlePageChange(totalPages)}>
+          <PaginationLink
+            onClick={() => handlePageChange(totalPages)}
+            className="select-none cursor-pointer"
+          >
             {totalPages}
           </PaginationLink>
         </PaginationItem>
@@ -97,7 +139,7 @@ function Search() {
     return pages;
   };
 
-  if (!searchTerm) {
+  if (!searchTag && !searchTerm) {
     return (
       <div className="flex flex-col flex-1 flex-grow bg-background text-text justify-center items-center min-h-screen py-8">
         <h1 className="mb-4 text-2xl">Digite algo para pesquisar</h1>
@@ -108,13 +150,15 @@ function Search() {
   return (
     <div className="flex flex-col flex-1 flex-grow bg-background text-text justify-center items-center min-h-screen py-8">
       {movies.length === 0 ? (
-        <p className="text-2xl font-medium">Nenhum filme encontrado ({searchTerm})</p>
-      ):(
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 p-4">
-        {movies.map((movie) => (
-          <MovieCard key={movie.id} movie={movie} id={movie.id} />
-        ))}
-      </div>
+        <p className="text-2xl font-medium">
+          Nenhum filme encontrado ({searchTag || searchTerm})
+        </p>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 p-4">
+          {movies.map((movie) => (
+            <MovieCard key={movie.id} movie={movie} id={movie.id} />
+          ))}
+        </div>
       )}
       {movies.length > 0 && (
         <Pagination
@@ -123,29 +167,36 @@ function Search() {
           onPageChange={handlePageChange}
         >
           <PaginationContent>
-            {/* Botão Anterior */}
             <PaginationItem disabled={currentPage === 1}>
-              <PaginationPrevious className={currentPage === 1 ? "cursor-not-allowed hover:bg-background select-none" : "select-none cursor-pointer"}
-                    onClick={() => {
-                      if (currentPage > 1) handlePageChange(currentPage - 1);
-                    }}
+              <PaginationPrevious
+                className={
+                  currentPage === 1
+                    ? "cursor-not-allowed hover:bg-background select-none"
+                    : "select-none cursor-pointer"
+                }
+                onClick={() => {
+                  if (currentPage > 1) handlePageChange(currentPage - 1);
+                }}
               />
             </PaginationItem>
-
-            {/* Renderização das páginas */}
             {renderPaginationItems()}
-
-            {/* Botão Próximo */}
             <PaginationItem disabled={currentPage === totalPages}>
-              <PaginationNext className={currentPage === totalPages ? "cursor-not-allowed hover:bg-background select-none" : "select-none cursor-pointer"}
+              <PaginationNext
+                className={
+                  currentPage === totalPages
+                    ? "cursor-not-allowed hover:bg-background select-none"
+                    : "select-none cursor-pointer"
+                }
                 onClick={() => {
-                  if (currentPage < totalPages) handlePageChange(currentPage + 1);
+                  if (currentPage < totalPages)
+                    handlePageChange(currentPage + 1);
                 }}
               />
             </PaginationItem>
           </PaginationContent>
         </Pagination>
       )}
+      <ScrollRestoration />
     </div>
   );
 }

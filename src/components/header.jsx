@@ -2,7 +2,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { useContext, useState } from "react";
 import { SearchContext } from "../context/SearchContext";
 import { Search } from "lucide-react";
-import { Button } from "./ui/button";
 
 export const Header = () => {
   const { setSearchTerm } = useContext(SearchContext); // Usando o contexto

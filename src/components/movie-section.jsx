@@ -6,7 +6,17 @@ import {
   CarouselNext,
 } from "./ui/carousel";
 
-export const MovieSection = ({ title, first = false, movies }) => {
+export const MovieSection = ({ title, first = false, movies, pages=1, tag='' }) => {
+
+  const verMais = {
+    id: 'verMais',
+    title: 'Ver Mais',
+    overview: 'Ver Mais',
+    poster_path: '/vermais.jpg',
+    backdrop_path: '/vermais.jpg',
+    vote_average: 0,
+  }
+  
   return (
     <>
       {movies && movies.length > 0 ? (
@@ -22,7 +32,6 @@ export const MovieSection = ({ title, first = false, movies }) => {
             <Carousel
               className="w-[90vw] md:w-[93vw] lg:w-[95vw]"
               opts={{
-                loop: true,
                 align: "start",
               }}
             >
@@ -32,6 +41,12 @@ export const MovieSection = ({ title, first = false, movies }) => {
                     <MovieCard movie={movie} id={movie.id} />
                   </CarouselItem>
                 ))}
+
+                {pages > 1 ? (
+                  <CarouselItem className="basis-4/7">
+                    <MovieCard movie={verMais} id={verMais.id} tag={tag} />
+                  </CarouselItem>
+                ) : null}
               </CarouselContent>
               <CarouselNext className="-right-4 bg-other text-text" />
             </Carousel>

@@ -6,7 +6,6 @@ import {
   CarouselContent,
   CarouselItem,
 } from "@/components/ui/carousel";
-import { getRecommendedMovies } from "@/helpers/recommendationHelper";
 import MoviesService from "@/services/MoviesService";
 import Autoplay from "embla-carousel-autoplay";
 import { useEffect, useState } from "react";
@@ -14,12 +13,12 @@ import { Link } from "react-router-dom";
 
 function Home() {
   const [movieCategories] = useState([
-    { apiCall: "popular", title: "Em alta" },
-    { apiCall: "listed", title: "Sua Lista" },
-    { apiCall: "top_rated", title: "Melhor avaliados" },
-    { apiCall: "upcoming", title: "Chegando em breve" },
-    { apiCall: "now_playing", title: "Em cartaz" },
-    { apiCall: "watched", title: "Assistidos" },
+    { apiCall: "trending", title: "Em alta", pagination: true },
+    { apiCall: "listed", title: "Sua Lista", pagination: false },
+    { apiCall: "top_rated", title: "Melhor avaliados", pagination: true },
+    { apiCall: "upcoming", title: "Chegando em breve", pagination: true },
+    { apiCall: "now_playing", title: "Em cartaz", pagination: true },
+    { apiCall: "watched", title: "Assistidos", pagination: false },
   ]);
   const [loading, setLoading] = useState(true);
   const [movieLists, setMovieLists] = useState([]);
@@ -31,50 +30,53 @@ function Home() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Busca todos os filmes das categorias
-        const moviesData = await Promise.all(
-          movieCategories.map((item) => getMovies(item.apiCall))
-        );
-        setMovieLists(moviesData);
+        const movieListsAccumulator = [];
+  
+        for (let i = 0; i < movieCategories.length; i++) {
+          const item = movieCategories[i];
+          const categoryMovies = await getMovies(item.apiCall);
+  
+          movieListsAccumulator.push({
+            title: item.title,
+            tag: item.apiCall,
+            movies: item.pagination ? categoryMovies.results : categoryMovies,
+            pages: item.pagination ? categoryMovies.total_pages : 1,
+          });
 
-        // Seleciona um filme aleatório da lista de assistidos (se disponível)
-        const watchedMovies = moviesData.find(
-          (category, index) => movieCategories[index].apiCall === "watched"
-        );
-        if (watchedMovies && watchedMovies.length > 0) {
-          const selectedMovie = getRandomMovie(watchedMovies);
-          setRandomMovie(selectedMovie);
+          if (item.apiCall === "watched") {
+            if (categoryMovies.length > 0) {
+              const watchedRecommendation = getRandomMovie(categoryMovies);
+              setRandomMovie(watchedRecommendation);
+  
+              const becauseYouWatched = await MoviesService.getRecommendedMovies(
+                watchedRecommendation.id
+              );
+              setBecauseYouWatched(becauseYouWatched.data.results);
+  
+              const recommendations =
+                await MoviesService.fetchRecommendedMovies(
+                  getRandomMovie(categoryMovies).id
+                );
+              setRecommendedMovies(recommendations);
+            } else {
+              const listRecommendation = await MoviesService.getMoviesList("popular");
+              setRecommendedMovies(
+                Array.isArray(listRecommendation.results) ? listRecommendation.results : []
+              );
+            }
+          }
         }
-
-        // Busca as recomendações gerais
-        const recommendedMovies = await getRecommendedMovies();
-        setRecommendedMovies(recommendedMovies);
-
+        setMovieLists(movieListsAccumulator);
         setLoading(false);
       } catch (error) {
         setError(error.message);
         setLoading(false);
       }
     };
-
+  
     fetchData();
-  }, []); // Executa uma vez na montagem do componente
-
-  // Use um efeito separado para buscar as recomendações baseadas no filme aleatório
-  useEffect(() => {
-    const fetchItemRecommendation = async (movie) => {
-      try {
-        const response = await MoviesService.getRecommendedMovies(movie.id);
-        setBecauseYouWatched(response.data.results);
-      } catch (error) {
-        setError(error.message);
-      }
-    };
-
-    if (randomMovie) {
-      fetchItemRecommendation(randomMovie);
-    }
-  }, [randomMovie]); // Executa sempre que randomMovie for atualizado
+  }, []);
+  
 
   if (loading) {
     return <Loading />;
@@ -93,7 +95,9 @@ function Home() {
               <CarouselItem key={movie.id}>
                 <div
                   style={{
-                    backgroundImage: `url(${import.meta.env.VITE_API_IMAGE_URL}original${movie?.backdrop_path})`,
+                    backgroundImage: `url(${
+                      import.meta.env.VITE_API_IMAGE_URL
+                    }original${movie?.backdrop_path})`,
                   }}
                   className="bg-cover bg-no-repeat"
                 >
@@ -102,7 +106,12 @@ function Home() {
                       {movie.title}
                     </h2>
                     <button className="bg-secondary hover:bg-primary text-text font-bold lg:text-2xl flex rounded-xl mt-2">
-                      <Link to={`/movie/${movie.id}`} className="p-2 px-8 w-full">Ver filme</Link>
+                      <Link
+                        to={`/movie/${movie.id}`}
+                        className="p-2 px-8 w-full"
+                      >
+                        Ver filme
+                      </Link>
                     </button>
                   </div>
                 </div>
@@ -112,7 +121,10 @@ function Home() {
         </Carousel>
       </section>
       {error ? (
-        <ErrorDialog title="Erro ao carregar filmes" error={error} />
+        <ErrorDialog
+          title="Erro ao carregar filmes"
+          error={{ message: error }}
+        />
       ) : (
         randomMovie && (
           <MovieSection
@@ -126,9 +138,11 @@ function Home() {
       {movieLists.map((item, index) => (
         <MovieSection
           key={index}
-          title={movieCategories[index].title}
-          movies={item}
-          first={index === 0 && !randomMovie} 
+          title={item.title}
+          movies={item.movies}
+          pages={item.pages}
+          tag={item.tag}
+          first={index === 0 && !randomMovie}
         />
       ))}
     </main>
@@ -142,6 +156,9 @@ const getMovies = async (apiCall) => {
   }
   if (apiCall === "listed" || apiCall === "watched") {
     return await getSavedMoviesInfos(apiCall);
+  }
+  if (apiCall === "trending") {
+    return await MoviesService.getTrendingMovies();
   }
   return await MoviesService.getMoviesList(apiCall);
 };

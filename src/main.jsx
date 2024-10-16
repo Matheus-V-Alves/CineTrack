@@ -23,6 +23,9 @@ const router = createBrowserRouter([
       {
         path: "search",
         element: <Search />,
+        children: [
+          { path: ":searchTag" },
+        ],
       },
     ],
     //errorElement: <ErrorDialog title={'Erro ao carregar a página'}/>,
