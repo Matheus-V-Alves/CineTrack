@@ -1,19 +1,25 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useContext, useState } from "react";
 import { SearchContext } from "../context/SearchContext";
+import { Search } from "lucide-react";
+import { Button } from "./ui/button";
 
 export const Header = () => {
   const { setSearchTerm } = useContext(SearchContext); // Usando o contexto
   const [inputValue, setInputValue] = useState("");
   const navigate = useNavigate(); // Hook para redirecionar
 
-  const handleSearch = (e) => {
+  const handleSearchInput = (e) => {
     if (e.key === "Enter" && inputValue.trim() !== "") {
-      setSearchTerm(inputValue);
-      navigate("/search"); // Redireciona para a página de busca
+      handleSearch();
     }
   };
-  
+
+  const handleSearch = () => {
+    setSearchTerm(inputValue); // Atualiza o termo de busca no contexto
+    navigate("/search"); // Redireciona para a página de busca
+  };
+
   return (
     <header className="flex bg-secondary p-2 px-6 lg:justify-between gap-4 flex-col lg:flex-row">
       <div className="flex items-center">
@@ -32,10 +38,18 @@ export const Header = () => {
           type="text"
           placeholder="Pesquisar"
           value={inputValue}
+          id="search"
           onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={handleSearch} // Captura a tecla Enter
-          className="bg-background text-text p-2 rounded-lg w-full lg:min-w-80"
+          onKeyDown={handleSearchInput}
+          className="bg-background text-text p-2 px-4 rounded-l-lg w-full lg:min-w-80 peer focus:outline-none focus:border focus:border-text"
         />
+        <label
+          htmlFor="search"
+          className="flex items-center bg-background text-text p-2 rounded-r-lg cursor-pointer peer-focus:border peer-focus:border-text"
+          onClick={handleSearch}
+        >
+          <Search />
+        </label>
       </div>
     </header>
   );

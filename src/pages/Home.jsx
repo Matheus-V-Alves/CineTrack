@@ -101,8 +101,8 @@ function Home() {
                     <h2 className="text-text font-bold text-2xl lg:text-4xl">
                       {movie.title}
                     </h2>
-                    <button className="bg-secondary text-text font-bold lg:text-2xl p-2 px-8 rounded-xl mt-2">
-                      <Link to={`/movie/${movie.id}`}>Ver filme</Link>
+                    <button className="bg-secondary hover:bg-primary text-text font-bold lg:text-2xl flex rounded-xl mt-2">
+                      <Link to={`/movie/${movie.id}`} className="p-2 px-8 w-full">Ver filme</Link>
                     </button>
                   </div>
                 </div>
