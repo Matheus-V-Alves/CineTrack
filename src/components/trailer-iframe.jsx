@@ -1,4 +1,4 @@
-import moviesService from "@/services/MoviesService";
+import MoviesService from "@/services/MoviesService";
 import { useEffect, useLayoutEffect, useState } from "react";
 import { ErrorDialog } from "./error-dialog";
 import { Loading } from "./loading";
@@ -73,7 +73,7 @@ export const TrailerIframe = ({ movieId }) => {
 };
 
 const getMovieVideos = async (id) => {
-  return await moviesService.getMovieVideos(id);
+  return await MoviesService.getMovieVideos(id);
 };
 
 const filterVideo = (videos) => {

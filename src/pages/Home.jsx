@@ -4,7 +4,7 @@ import { MovieSection } from "@/components/movie-section";
 import {
   Carousel,
   CarouselContent,
-  CarouselItem,
+  CarouselItem
 } from "@/components/ui/carousel";
 import MoviesService from "@/services/MoviesService";
 import Autoplay from "embla-carousel-autoplay";
@@ -75,7 +75,7 @@ function Home() {
     };
   
     fetchData();
-  }, []);
+  });
   
 
   if (loading) {

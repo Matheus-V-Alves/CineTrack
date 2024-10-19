@@ -1,4 +1,4 @@
-import moviesService from "@/services/MoviesService";
+import MoviesService from "@/services/MoviesService";
 import { ArrowLeft } from "lucide-react";
 import { FaStar } from "react-icons/fa";
 import { useEffect, useState } from "react";
@@ -120,7 +120,7 @@ function DetailsMovie() {
 }
 
 const getMovie = async (id) => {
-  return await moviesService.getMovieDetails(id);
+  return await MoviesService.getMovieDetails(id);
 };
 
 export default DetailsMovie;

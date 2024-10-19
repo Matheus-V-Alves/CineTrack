@@ -1,6 +1,6 @@
 import { useContext, useEffect, useLayoutEffect, useState } from "react";
 import { SearchContext } from "../context/SearchContext";
-import moviesService from "@/services/MoviesService";
+import MoviesService from "@/services/MoviesService";
 import { MovieCard } from "@/components/movie-card";
 import {
   Pagination,
@@ -43,7 +43,7 @@ function Search() {
   }, [searchTag, searchTerm, currentPage]);
 
   const fetchMovies = (searchTerm, page) => {
-    moviesService.searchMovies(searchTerm, page).then((query) => {
+    MoviesService.searchMovies(searchTerm, page).then((query) => {
       console.log("Filmes encontrados:", query.data.results);
       console.log("Página:", query.data.page);
       console.log("Total de páginas:", query.data.total_pages);
@@ -55,9 +55,9 @@ function Search() {
   const fetchTag = async (tag, page) => {
     let tagSearch = null;
     if (tag === "trending") {
-      tagSearch = await moviesService.getTrendingMovies(page);
+      tagSearch = await MoviesService.getTrendingMovies(page);
     } else {
-      tagSearch = await moviesService.getMoviesList(tag, page);
+      tagSearch = await MoviesService.getMoviesList(tag, page);
     }
 
     if (tagSearch.results) {

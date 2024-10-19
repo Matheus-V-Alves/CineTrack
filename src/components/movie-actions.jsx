@@ -1,5 +1,5 @@
 import { useToast } from "@/hooks/use-toast";
-import moviesService from "@/services/MoviesService";
+import MoviesService from "@/services/MoviesService";
 import { Bookmark, BookmarkCheck, Eye, EyeOff } from "lucide-react";
 import { useEffect, useState } from "react";
 export const MovieActions = ({ movieId }) => {
@@ -10,16 +10,16 @@ export const MovieActions = ({ movieId }) => {
 
   const handleSave = async (type) => {
     try {
-      const isSaved = await moviesService.isMovieSaved(movieId, type);
+      const isSaved = await MoviesService.isMovieSaved(movieId, type);
       if (isSaved) {
-        await moviesService.removeSavedMovie(movieId, type);
+        await MoviesService.removeSavedMovie(movieId, type);
         type === "listed" ? setListed(false) : setWatched(false);
         toast({
             title: `Filme removido da lista de ${type === "listed" ? "favoritos" : "assistidos"}`,
             type: "success",
             });
       } else {
-        await moviesService.saveMovie(movieId, type);
+        await MoviesService.saveMovie(movieId, type);
         type === "listed" ? setListed(true) : setWatched(true);
         console.log("Movie saved to", type);
         toast({
@@ -36,8 +36,8 @@ export const MovieActions = ({ movieId }) => {
   useEffect(() => {
     const fetchMovieStatus = async () => {
       try {
-        const isListed = await moviesService.isMovieSaved(movieId, "listed");
-        const isWatched = await moviesService.isMovieSaved(movieId, "watched");
+        const isListed = await MoviesService.isMovieSaved(movieId, "listed");
+        const isWatched = await MoviesService.isMovieSaved(movieId, "watched");
         setListed(isListed);
         setWatched(isWatched);
       } catch (error) {

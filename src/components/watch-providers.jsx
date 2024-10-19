@@ -1,4 +1,4 @@
-import moviesService from "@/services/MoviesService";
+import MoviesService from "@/services/MoviesService";
 
 import {
   Collapsible,
@@ -120,5 +120,5 @@ const isEqual = (a, b) => {
 };
 
 const getWatchProviders = async (id) => {
-  return await moviesService.getWatchProviders(id);
+  return await MoviesService.getWatchProviders(id);
 };
