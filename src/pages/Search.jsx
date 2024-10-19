@@ -234,8 +234,8 @@ function Search() {
       )}
       <ScrollRestoration />
       {searchTag !== "all" && (
-        <button className="bg-secondary p-4 mt-6 mx-6 text-text rounded-xl text-2xl font-semibold hover:bg-primary">
-          <Link to="all">Ver todos os filmes</Link>
+        <button className="bg-secondary mt-6 mx-6 text-text rounded-xl text-2xl font-semibold hover:bg-primary">
+          <Link to="all" className="p-4 flex items-center justify-center">Ver todos os filmes</Link>
         </button>
       )}
     </div>
