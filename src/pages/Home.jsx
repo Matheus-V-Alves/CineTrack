@@ -75,7 +75,7 @@ function Home() {
     };
   
     fetchData();
-  });
+  }, []);
   
 
   if (loading) {
