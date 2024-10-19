@@ -42,3 +42,9 @@ Como descrito nas Funcionalidades do Moovie, foi criado um sistema de recomenda�
 
 ### Adendos
 Acredito que esse projeto foi de grande importância para minhas habilidades técnicas com React, uma vez que, com ele pude fixar conceitos da biblioteca (como useState, useEffect e etc).
+
+## [Clique aqui para testar a aplicação](https://qz-moovie.vercel.app/)
+
+<img src="./public/moovie.png" alt="Página Inicial"><br><br>
+<img src="./public/moovie2.gif" alt="Página Inicial"><br><br>
+<img src="./public/moovie3.gif" alt="Página Inicial">
