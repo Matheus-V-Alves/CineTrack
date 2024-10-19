@@ -145,6 +145,7 @@ function Home() {
           first={index === 0 && !randomMovie}
         />
       ))}
+      <button className="bg-secondary p-4 mt-6 mx-6 text-text rounded-xl text-2xl font-semibold hover:bg-primary"><Link to="search/all">Ver todos os filmes</Link></button>
     </main>
   );
 }

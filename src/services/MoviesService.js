@@ -43,6 +43,22 @@ class MoviesService {
     localStorage.setItem(cacheKey, JSON.stringify(cacheData));
   }
 
+  async getAllMovies(page=1, filters) {
+    let url = `/discover/movie?${this.defaultLanguage}&page=${page}&sort_by=popularity.desc`;
+    if (filters.generos.length > 0) {
+      url += `&with_genres=${filters.generos.join(",")}`;
+    }
+    if (filters.nota) {
+      if(filters.nota === "<5") {
+        url += `&vote_average.lte=5&vote_count.gte=1`;
+      } else {
+      url += `&vote_average.gte=${filters.nota}`;
+      }
+    }
+    let response = await resolve(api.get(url));
+    return response.data;
+  }
+
   async getTrendingMovies(page=1) {
     const url = `/trending/movie/week?${this.defaultLanguage}&page=${page}`;
     let response = await resolve(api.get(url));

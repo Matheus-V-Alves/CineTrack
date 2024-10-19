@@ -28,12 +28,12 @@ const router = createBrowserRouter([
         ],
       },
     ],
-    //errorElement: <ErrorDialog title={'Erro ao carregar a página'}/>,
+    errorElement: <ErrorDialog title={'Erro ao carregar a página'}/>,
   },
   {
     path: "movie/:movieId",
     element: <DetailsMovie />,
-    //errorElement: <ErrorDialog title={'Erro ao carregar a página'}/>,
+    errorElement: <ErrorDialog title={'Erro ao carregar a página'}/>,
   },
   {
     path: "*",
