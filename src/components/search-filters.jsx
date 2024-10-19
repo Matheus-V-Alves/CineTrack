@@ -91,7 +91,7 @@ export const SearchFilters = ({ aplicarFiltros }) => {
         <form className="flex flex-col gap-4" onSubmit={handleFilter}>
           <div>
             <h2 className="font-medium text-lg">Gêneros</h2>
-            <div className="grid grid-cols-3 gap-1">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-1">
               {genres.map((genre) => (
                 <div key={genre.id} className="flex items-center gap-1">
                   <Checkbox
@@ -130,11 +130,14 @@ export const SearchFilters = ({ aplicarFiltros }) => {
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" onClick={handleClearFilters}>
+            <Button type="button" className="mt-2 sm:mt-0" onClick={handleClearFilters}>
               Limpar filtros
             </Button>
-            <DialogClose>
-              <Button type="submit">Aplicar filtros</Button>
+            <DialogClose
+              type="submit"
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neutral-950 disabled:pointer-events-none disabled:opacity-50 dark:focus-visible:ring-neutral-300 bg-neutral-900 text-neutral-50 shadow hover:bg-neutral-900/90 dark:bg-neutral-50 dark:text-neutral-900 dark:hover:bg-neutral-50/90 h-9 px-4 py-2"
+            >
+              Aplicar filtros
             </DialogClose>
           </DialogFooter>
         </form>
