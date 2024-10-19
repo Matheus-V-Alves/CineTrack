@@ -47,7 +47,6 @@ export const TrailerIframe = ({ movieId }) => {
           width < 768 ? (width / 16) * 9 : (((width / 4) * 3) / 16) * 9,
       }}
     >
-            {console.log(videos)}
       {error ? (
         <ErrorDialog title="Erro ao carregar o trailer" error={error} />
       ) : (

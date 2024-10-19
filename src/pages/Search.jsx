@@ -12,6 +12,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { ScrollRestoration, useParams } from "react-router-dom";
+import { SearchFilters } from "@/components/search-filters";
 
 function useWindowSize() {
   const [width, setWidth] = useState(0);
@@ -32,36 +33,33 @@ function Search() {
   const [movies, setMovies] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [filters, setFilters] = useState({ generos: [], nota: "" });
   const width = useWindowSize();
 
   useEffect(() => {
     if (searchTag) {
-      fetchTag(searchTag, currentPage);
+      fetchTag(searchTag, currentPage, filters);
     } else if (searchTerm) {
-      fetchMovies(searchTerm, currentPage);
+      fetchMovies(searchTerm, currentPage, filters);
     }
-  }, [searchTag, searchTerm, currentPage]);
+  }, [searchTag, searchTerm, currentPage, filters]);
 
-  const fetchMovies = (searchTerm, page) => {
-    MoviesService.searchMovies(searchTerm, page).then((query) => {
-      console.log("Filmes encontrados:", query.data.results);
-      console.log("Página:", query.data.page);
-      console.log("Total de páginas:", query.data.total_pages);
+  const fetchMovies = (searchTerm, page, filtros) => {
+    MoviesService.searchMovies(searchTerm, page, filtros).then((query) => {
       setMovies(query.data.results);
       setTotalPages(query.data.total_pages);
     });
   };
 
-  const fetchTag = async (tag, page) => {
+  const fetchTag = async (tag, page, filtros) => {
     let tagSearch = null;
     if (tag === "trending") {
-      tagSearch = await MoviesService.getTrendingMovies(page);
+      tagSearch = await MoviesService.getTrendingMovies(page, filtros);
     } else {
-      tagSearch = await MoviesService.getMoviesList(tag, page);
+      tagSearch = await MoviesService.getMoviesList(tag, page, filtros);
     }
 
     if (tagSearch.results) {
-      console.log("Filmes encontrados:", tagSearch.results);
       setMovies(tagSearch.results);
       setTotalPages(tagSearch.total_pages);
     }
@@ -70,6 +68,11 @@ function Search() {
   const handlePageChange = (page) => {
     document.documentElement.scrollTop = 0;
     setCurrentPage(page);
+  };
+
+  const aplicarFiltros = (novosFiltros) => {
+    setFilters(novosFiltros);
+    setCurrentPage(1); // Reseta para a primeira página após aplicar filtros
   };
 
   const renderPaginationItems = () => {
@@ -148,9 +151,14 @@ function Search() {
   }
 
   return (
-    <div className="flex flex-col flex-1 flex-grow bg-background text-text justify-center items-center min-h-screen py-8">
+    <div className="flex flex-col flex-1 flex-grow bg-background text-text justify-start items-center min-h-screen py-8">
+      <div className="w-full md:w-[90%] xl:w-[50%] flex items-center justify-between px-12">
+      <h1 className="font-bold text-2xl">Resultados da pesquisa:</h1>
+      <SearchFilters aplicarFiltros={aplicarFiltros} />
+      </div>
+
       {movies.length === 0 ? (
-        <p className="text-2xl font-medium">
+        <p className="text-2xl font-medium text-center">
           Nenhum filme encontrado ({searchTag || searchTerm})
         </p>
       ) : (

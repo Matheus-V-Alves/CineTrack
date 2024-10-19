@@ -154,5 +154,10 @@ class MoviesService {
       return recommendations.data.results;
     }
   }
+
+  async getGenres() {
+    const url = `/genre/movie/list?${this.defaultLanguage}`;
+    return await resolve(api.get(url));
+  }
 }
 export default new MoviesService();
