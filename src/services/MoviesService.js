@@ -7,18 +7,13 @@ class MoviesService {
   }
 
   async getMoviesList(list, page=1) {
-    const cacheKey = `${list}Cache`;
-    const cachedData = this.getMoviesCache(cacheKey);
 
-    if (cachedData && page === 1) {
-      return cachedData.data;
+    if (list === "trending") {
+      return await this.getTrendingMovies(page);
     }
 
     const url = `/movie/${list}?${this.defaultLanguage}&page=${page}`;
     let response = await resolve(api.get(url));
-    if (response.data && page === 1) {
-      this.setMoviesCache(cacheKey, response.data);
-    }
     return response.data;
   }
 
@@ -27,7 +22,7 @@ class MoviesService {
     if (cache) {
       const cacheData = JSON.parse(cache);
       if (new Date(cacheData.timestamp) > new Date()) {
-        return cacheData;
+        return cacheData.data;
       }
       return null;
     }
@@ -35,7 +30,7 @@ class MoviesService {
 
   setMoviesCache(cacheKey, data) {
     const futureDate = new Date();
-    futureDate.setHours(futureDate.getHours() + 12);
+    futureDate.setHours(futureDate.getHours() + 2);
     const cacheData = {
       data,
       timestamp: futureDate.toISOString(),
@@ -134,22 +129,6 @@ class MoviesService {
   async getRecommendedMovies(id) {
     const url = `/movie/${id}/recommendations?${this.defaultLanguage}`;
     return await resolve(api.get(url));
-  }
-
-  getRecommendedMoviesCache() {
-    const cache = localStorage.getItem("recommendedMoviesCache");
-    return cache ? JSON.parse(cache) : {};
-  }
-
-  setRecommendedMovieCache(movieId, recommendations) {
-    const futureDate = new Date();
-    futureDate.setDate(futureDate.getDate() + 1);
-    const cacheData = {
-      movieId,
-      recommendations,
-      timestamp: futureDate.toISOString(),
-    };
-    localStorage.setItem("recommendedMoviesCache", JSON.stringify(cacheData));
   }
 
   async getCachedRecommendedMovies() {

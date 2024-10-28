@@ -8,8 +8,8 @@ import {
 } from "@/components/ui/carousel";
 import MoviesService from "@/services/MoviesService";
 import Autoplay from "embla-carousel-autoplay";
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState, useMemo, useCallback } from "react";
+import { Link, ScrollRestoration } from "react-router-dom";
 
 function Home() {
   const [movieCategories] = useState([
@@ -20,63 +20,108 @@ function Home() {
     { apiCall: "now_playing", title: "Em cartaz", pagination: true },
     { apiCall: "watched", title: "Assistidos", pagination: false },
   ]);
+
   const [loading, setLoading] = useState(true);
   const [movieLists, setMovieLists] = useState([]);
-  const [randomMovie, setRandomMovie] = useState(null);
-  const [becauseYouWatched, setBecauseYouWatched] = useState([]);
-  const [recommendedMovies, setRecommendedMovies] = useState([]);
+  const [carouselMovies, setCarouselMovies] = useState([]);
+  const [becauseYouWatchedMovies, setBecauseYouWatchedMovies] = useState([]);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const movieListsAccumulator = [];
-  
-        for (let i = 0; i < movieCategories.length; i++) {
-          const item = movieCategories[i];
-          const categoryMovies = await getMovies(item.apiCall);
-  
-          movieListsAccumulator.push({
-            title: item.title,
-            tag: item.apiCall,
-            movies: item.pagination ? categoryMovies.results : categoryMovies,
-            pages: item.pagination ? categoryMovies.total_pages : 1,
-          });
+  const fetchMovieCategories = useCallback(async () => {
+    try {
+      setLoading(true);
 
-          if (item.apiCall === "watched") {
-            if (categoryMovies.length > 0) {
-              const watchedRecommendation = getRandomMovie(categoryMovies);
-              setRandomMovie(watchedRecommendation);
+      const cachedData = MoviesService.getMoviesCache("movieListsCache");
+      let movieListsAccumulator;
+
+      if (cachedData) {
+        movieListsAccumulator = JSON.parse(cachedData);
+      } else {
+        movieListsAccumulator = await Promise.all(
+          movieCategories.map(async (item) => {
+            const categoryMovies = await getMovies(item.apiCall);
+            return {
+              title: item.title,
+              tag: item.apiCall,
+              movies: item.pagination ? categoryMovies.results : categoryMovies,
+              pages: item.pagination ? categoryMovies.total_pages : 1,
+            };
+          })
+        );
+        MoviesService.setMoviesCache("movieListsCache", JSON.stringify(movieListsAccumulator));
+      }
+
+      setMovieLists(movieListsAccumulator);
+      setLoading(false);
+    } catch (error) {
+      setError(error.message);
+      setLoading(false);
+    }
+  }, [movieCategories]);
+
+  useEffect(() => {
+    fetchMovieCategories();
+  }, [fetchMovieCategories]);
+
+  useEffect(() => {
+    const fetchWatchedAndListed = async () => {
+      try {
+        const updatedLists = await Promise.all(
+          ["watched", "listed"].map(async (apiCall) => {
+            const movies = await getMovies(apiCall);
+            const originalTitle = movieCategories.find((item) => item.apiCall === apiCall)?.title || "";
+            return {
+              tag: apiCall,
+              title: originalTitle,
+              movies: movies,
+              pages: 1,
+            };
+          })
+        );
   
-              const becauseYouWatched = await MoviesService.getRecommendedMovies(
-                watchedRecommendation.id
-              );
-              setBecauseYouWatched(becauseYouWatched.data.results);
-  
-              const recommendations =
-                await MoviesService.fetchRecommendedMovies(
-                  getRandomMovie(categoryMovies).id
-                );
-              setRecommendedMovies(recommendations);
-            } else {
-              const listRecommendation = await MoviesService.getMoviesList("popular");
-              setRecommendedMovies(
-                Array.isArray(listRecommendation.results) ? listRecommendation.results : []
-              );
-            }
-          }
-        }
-        setMovieLists(movieListsAccumulator);
-        setLoading(false);
+        setMovieLists((prevLists) =>
+          prevLists.map((list) =>
+            updatedLists.find((updated) => updated.tag === list.tag) || list
+          )
+        );
       } catch (error) {
         setError(error.message);
-        setLoading(false);
       }
     };
   
-    fetchData();
+    fetchWatchedAndListed();
+  }, [movieCategories]);
+
+  const randomMovie = useMemo(() => {
+    const watchedList = movieLists.find((list) => list.tag === "watched");
+    return watchedList ? getRandomMovie(watchedList.movies) : null;
+  }, [movieLists]);
+
+  useEffect(() => {
+    const fetchBecauseYouWatched = async () => {
+      if (randomMovie) {
+        try {
+          const recommendations = await MoviesService.getRecommendedMovies(randomMovie.id);
+          setBecauseYouWatchedMovies(recommendations.data.results);
+        } catch (error) {
+          setError(error.message);
+        }
+      }
+    };
+    fetchBecauseYouWatched();
+  }, [randomMovie]);
+
+  useEffect(() => {
+    const fetchCarouselMovies = async () => {
+      try {
+        const trendingMovies = await MoviesService.getMoviesList("trending");
+        setCarouselMovies(trendingMovies.results);
+      } catch (error) {
+        setError(error.message);
+      }
+    };
+    fetchCarouselMovies();
   }, []);
-  
 
   if (loading) {
     return <Loading />;
@@ -91,7 +136,7 @@ function Home() {
           plugins={[Autoplay({ delay: 7000 })]}
         >
           <CarouselContent>
-            {recommendedMovies.map((movie) => (
+            {carouselMovies.map((movie) => (
               <CarouselItem key={movie.id}>
                 <div
                   style={{
@@ -130,7 +175,7 @@ function Home() {
           <MovieSection
             key="because-you-watched"
             title={`Porque você assistiu: ${randomMovie.title}`}
-            movies={becauseYouWatched}
+            movies={becauseYouWatchedMovies}
             first={true}
           />
         )
@@ -145,7 +190,12 @@ function Home() {
           first={index === 0 && !randomMovie}
         />
       ))}
-      <button className="bg-secondary mt-6 mx-6 text-text rounded-xl text-2xl font-semibold hover:bg-primary"><Link to="search/all" className="flex p-4 items-center justify-center">Ver todos os filmes</Link></button>
+      <button className="bg-secondary mt-6 mx-6 text-text rounded-xl text-2xl font-semibold hover:bg-primary">
+        <Link to="search/all" className="flex p-4 items-center justify-center">
+          Ver todos os filmes
+        </Link>
+      </button>
+      <ScrollRestoration />
     </main>
   );
 }
@@ -158,9 +208,6 @@ const getMovies = async (apiCall) => {
   if (apiCall === "listed" || apiCall === "watched") {
     return await getSavedMoviesInfos(apiCall);
   }
-  if (apiCall === "trending") {
-    return await MoviesService.getTrendingMovies();
-  }
   return await MoviesService.getMoviesList(apiCall);
 };
 
@@ -168,7 +215,6 @@ const getSavedMoviesInfos = async (type) => {
   return await MoviesService.getSavedMoviesInfos(type);
 };
 
-// Função que retorna um filme aleatório
 const getRandomMovie = (moviesList) => {
   const randomIndex = Math.floor(Math.random() * moviesList.length);
   return moviesList[randomIndex];
