@@ -114,14 +114,24 @@ function Home() {
   useEffect(() => {
     const fetchCarouselMovies = async () => {
       try {
-        const trendingMovies = await MoviesService.getMoviesList("trending");
-        setCarouselMovies(trendingMovies.results);
+        const savedList = movieLists.find((list) => list.tag === "listed");
+  
+        if (savedList && savedList.movies.length > 0) {
+          const randomSavedMovie = getRandomMovie(savedList.movies);
+          const recommendedMovies = await MoviesService.getRecommendedMovies(randomSavedMovie.id);
+          console.log(recommendedMovies);
+          setCarouselMovies(recommendedMovies.data.results);
+        } else {
+          const trendingMovies = await MoviesService.getMoviesList("trending");
+          setCarouselMovies(trendingMovies.results);
+        }
       } catch (error) {
         setError(error.message);
       }
     };
+  
     fetchCarouselMovies();
-  }, []);
+  }, [movieLists]);
 
   if (loading) {
     return <Loading />;

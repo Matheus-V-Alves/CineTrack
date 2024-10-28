@@ -126,28 +126,19 @@ class MoviesService {
     return response;
   }
 
-  async getRecommendedMovies(id) {
-    const url = `/movie/${id}/recommendations?${this.defaultLanguage}`;
-    return await resolve(api.get(url));
-  }
-
-  async getCachedRecommendedMovies() {
-    const cacheData = this.getRecommendedMoviesCache();
-    if (new Date(cacheData.timestamp) > new Date()) {
-      return cacheData.recommendations;
+  async getRecommendedMovies(id, page = 1) {
+    const url = `/movie/${id}/recommendations?${this.defaultLanguage}&page=${page}`;
+    const response = await resolve(api.get(url));
+    const watchedMovies = await this.getSavedMovies("watched");
+    let recommendations = response.data.results.filter(
+      (movie) => !watchedMovies.includes(`${movie.id}`)
+    );
+    if (recommendations.length < 20 && page < response.data.total_pages) {
+      const nextPage = await this.getRecommendedMovies(id, page + 1);
+      recommendations = recommendations.concat(nextPage.data.results);
     }
-    return null;
-  }
-
-  async fetchRecommendedMovies(movieId) {
-    let cachedRecommendations = await this.getCachedRecommendedMovies();
-    if (cachedRecommendations) {
-      return cachedRecommendations;
-    } else {
-      const recommendations = await this.getRecommendedMovies(movieId);
-      this.setRecommendedMovieCache(movieId, recommendations.data.results);
-      return recommendations.data.results;
-    }
+    response.data.results = recommendations;
+    return response;
   }
 
   async getGenres() {
