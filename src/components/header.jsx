@@ -20,7 +20,7 @@ export const Header = () => {
   };
 
   return (
-    <header className="flex bg-secondary p-2 px-6 lg:justify-between gap-4 flex-col lg:flex-row">
+    <header className="flex bg-cyan-500 p-2 px-6 lg:justify-between gap-4 flex-col lg:flex-row">
       <div className="flex items-center">
         <Link to={"/"} className="flex items-center">
           {" "}
@@ -29,7 +29,7 @@ export const Header = () => {
             alt="Ícone do app"
             className="drop-shadow-[0_4px_4px_rgba(0,0,0,0.75)] size-16"
           />
-          <p className="text-text font-bold text-3xl">Moovie</p>
+          <p className="text-text font-bold text-3xl">CineTrack</p>
         </Link>
       </div>
       <div className="flex mb-2 lg:my-2">

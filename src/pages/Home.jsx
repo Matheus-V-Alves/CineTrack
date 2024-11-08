@@ -43,8 +43,8 @@ function Home() {
             return {
               title: item.title,
               tag: item.apiCall,
-              movies: item.pagination ? categoryMovies.results : categoryMovies,
-              pages: item.pagination ? categoryMovies.total_pages : 1,
+              movies: categoryMovies?.results || [],
+              pages: categoryMovies?.total_pages || 1,
             };
           })
         );
@@ -73,12 +73,12 @@ function Home() {
             return {
               tag: apiCall,
               title: originalTitle,
-              movies: movies,
+              movies: movies || [],
               pages: 1,
             };
           })
         );
-  
+
         setMovieLists((prevLists) =>
           prevLists.map((list) =>
             updatedLists.find((updated) => updated.tag === list.tag) || list
@@ -88,7 +88,7 @@ function Home() {
         setError(error.message);
       }
     };
-  
+
     fetchWatchedAndListed();
   }, [movieCategories]);
 
@@ -102,7 +102,7 @@ function Home() {
       if (randomMovie) {
         try {
           const recommendations = await MoviesService.getRecommendedMovies(randomMovie.id);
-          setBecauseYouWatchedMovies(recommendations.data.results);
+          setBecauseYouWatchedMovies(recommendations?.data?.results || []);
         } catch (error) {
           setError(error.message);
         }
@@ -115,21 +115,20 @@ function Home() {
     const fetchCarouselMovies = async () => {
       try {
         const savedList = movieLists.find((list) => list.tag === "listed");
-  
+
         if (savedList && savedList.movies.length > 0) {
           const randomSavedMovie = getRandomMovie(savedList.movies);
           const recommendedMovies = await MoviesService.getRecommendedMovies(randomSavedMovie.id);
-          console.log(recommendedMovies);
-          setCarouselMovies(recommendedMovies.data.results);
+          setCarouselMovies(recommendedMovies?.data?.results || []);
         } else {
           const trendingMovies = await MoviesService.getMoviesList("trending");
-          setCarouselMovies(trendingMovies.results);
+          setCarouselMovies(trendingMovies?.results || []);
         }
       } catch (error) {
         setError(error.message);
       }
     };
-  
+
     fetchCarouselMovies();
   }, [movieLists]);
 
@@ -146,32 +145,36 @@ function Home() {
           plugins={[Autoplay({ delay: 7000 })]}
         >
           <CarouselContent>
-            {carouselMovies.map((movie) => (
-              <CarouselItem key={movie.id}>
-                <div
-                  style={{
-                    backgroundImage: `url(${
-                      import.meta.env.VITE_API_IMAGE_URL
-                    }original${movie?.backdrop_path})`,
-                  }}
-                  className="bg-cover bg-no-repeat"
-                >
-                  <div className="bg-gradient-to-t from-background flex items-start p-4 pb-16 lg:px-8 lg:pb-44 xl:pb-[50vh] flex-col justify-end w-full min-w-screen min-h-[calc(100vw*9/16)]">
-                    <h2 className="text-text font-bold text-2xl lg:text-4xl">
-                      {movie.title}
-                    </h2>
-                    <button className="bg-secondary hover:bg-primary text-text font-bold lg:text-2xl flex rounded-xl mt-2">
-                      <Link
-                        to={`/movie/${movie.id}`}
-                        className="p-2 px-8 w-full"
-                      >
-                        Ver filme
-                      </Link>
-                    </button>
+            {carouselMovies.length > 0 ? (
+              carouselMovies.map((movie) => (
+                <CarouselItem key={movie.id}>
+                  <div
+                    style={{
+                      backgroundImage: `url(${
+                        import.meta.env.VITE_API_IMAGE_URL
+                      }original${movie?.backdrop_path})`,
+                    }}
+                    className="bg-cover bg-no-repeat"
+                  >
+                    <div className="bg-gradient-to-t from-background flex items-start p-4 pb-16 lg:px-8 lg:pb-44 xl:pb-[50vh] flex-col justify-end w-full min-w-screen min-h-[calc(100vw*9/16)]">
+                      <h2 className="text-text font-bold text-2xl lg:text-4xl">
+                        {movie.title}
+                      </h2>
+                      <button className="bg-secondary hover:bg-primary text-text font-bold lg:text-2xl flex rounded-xl mt-2">
+                        <Link
+                          to={`/movie/${movie.id}`}
+                          className="p-2 px-8 w-full"
+                        >
+                          Ver filme
+                        </Link>
+                      </button>
+                    </div>
                   </div>
-                </div>
-              </CarouselItem>
-            ))}
+                </CarouselItem>
+              ))
+            ) : (
+              <p className="text-center text-text">Nenhum filme disponível</p>
+            )}
           </CarouselContent>
         </Carousel>
       </section>
@@ -200,7 +203,7 @@ function Home() {
           first={index === 0 && !randomMovie}
         />
       ))}
-      <button className="bg-secondary mt-6 mx-6 text-text rounded-xl text-2xl font-semibold hover:bg-primary">
+      <button className="bg-cyan-600 mt-6 mx-6 text-text rounded-xl text-2xl font-semibold hover:bg-cyan-300">
         <Link to="search/all" className="flex p-4 items-center justify-center">
           Ver todos os filmes
         </Link>
@@ -211,21 +214,35 @@ function Home() {
 }
 
 const getMovies = async (apiCall) => {
-  if (!apiCall) {
-    console.error("API call is undefined");
-    return;
+  try {
+    if (!apiCall) {
+      console.error("API call is undefined");
+      return [];
+    }
+    if (apiCall === "listed" || apiCall === "watched") {
+      return await getSavedMoviesInfos(apiCall);
+    }
+    const response = await MoviesService.getMoviesList(apiCall);
+    return response || [];
+  } catch (error) {
+    console.error(`Failed to fetch movies for ${apiCall}:`, error);
+    return [];
   }
-  if (apiCall === "listed" || apiCall === "watched") {
-    return await getSavedMoviesInfos(apiCall);
-  }
-  return await MoviesService.getMoviesList(apiCall);
 };
 
 const getSavedMoviesInfos = async (type) => {
-  return await MoviesService.getSavedMoviesInfos(type);
+  try {
+    return await MoviesService.getSavedMoviesInfos(type);
+  } catch (error) {
+    console.error(`Failed to fetch saved movies for ${type}:`, error);
+    return [];
+  }
 };
 
 const getRandomMovie = (moviesList) => {
+  if (!moviesList || moviesList.length === 0) {
+    return null;
+  }
   const randomIndex = Math.floor(Math.random() * moviesList.length);
   return moviesList[randomIndex];
 };
