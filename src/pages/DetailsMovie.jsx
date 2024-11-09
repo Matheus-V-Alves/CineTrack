@@ -35,7 +35,7 @@ function DetailsMovie() {
   }
 
   return (
-    <main className="bg-background flex flex-1 flex-grow flex-col">
+    <main className="bg-cyan-800 flex flex-1 flex-grow flex-col">
       {error && (
         <ErrorDialog
           error={error}

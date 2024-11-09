@@ -49,8 +49,10 @@ function Search() {
   useEffect(() => {
     const fetchData = async () => {
       if (searchTag) {
+        console.log("Fetching by tag:", searchTag);
         await fetchTag(searchTag, currentPage, filters);
       } else if (searchTerm) {
+        console.log("Fetching by searchTerm:", searchTerm);
         await fetchMovies(searchTerm, currentPage, filters);
       }
     };
@@ -61,6 +63,7 @@ function Search() {
   const fetchMovies = async (searchTerm, page, filtros) => {
     try {
       const query = await MoviesService.searchMovies(searchTerm, page, filtros);
+      console.log("Movies fetched:", query.data.results);
       setSearchResults(query.data.results);
       setTotalPages(query.data.total_pages);
     } catch (error) {
@@ -80,6 +83,7 @@ function Search() {
       }
 
       if (tagSearch.results) {
+        console.log("Movies by tag fetched:", tagSearch.results);
         setSearchResults(tagSearch.results);
         setTotalPages(tagSearch.total_pages);
       } else {
@@ -137,7 +141,7 @@ function Search() {
             onClick={() => handlePageChange(i)}
             className={
               i === currentPage
-                ? "bg-secondary select-none cursor-pointer"
+                ? "bg-cyan-500 select-none cursor-pointer"
                 : "select-none cursor-pointer"
             }
           >
@@ -234,8 +238,10 @@ function Search() {
       )}
       <ScrollRestoration />
       {searchTag !== "all" && (
-        <button className="bg-secondary mt-6 mx-6 text-text rounded-xl text-2xl font-semibold hover:bg-primary">
-          <Link to="all" className="p-4 flex items-center justify-center">Ver todos os filmes</Link>
+        <button className="bg-cyan-500 mt-6 mx-6 text-text rounded-xl text-2xl font-semibold hover:bg-primary">
+          <Link to="all" className="p-4 flex items-center justify-center">
+            Ver todos os filmes
+          </Link>
         </button>
       )}
     </div>

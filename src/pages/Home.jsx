@@ -54,6 +54,7 @@ function Home() {
       setMovieLists(movieListsAccumulator);
       setLoading(false);
     } catch (error) {
+      console.error("Error fetching movie categories:", error);
       setError(error.message);
       setLoading(false);
     }
@@ -85,6 +86,7 @@ function Home() {
           )
         );
       } catch (error) {
+        console.error("Error fetching watched and listed movies:", error);
         setError(error.message);
       }
     };
@@ -102,8 +104,10 @@ function Home() {
       if (randomMovie) {
         try {
           const recommendations = await MoviesService.getRecommendedMovies(randomMovie.id);
+          console.log("Recommendations:", recommendations);
           setBecauseYouWatchedMovies(recommendations?.data?.results || []);
         } catch (error) {
+          console.error("Error fetching recommendations:", error);
           setError(error.message);
         }
       }
@@ -119,12 +123,15 @@ function Home() {
         if (savedList && savedList.movies.length > 0) {
           const randomSavedMovie = getRandomMovie(savedList.movies);
           const recommendedMovies = await MoviesService.getRecommendedMovies(randomSavedMovie.id);
+          console.log("Carousel recommended movies:", recommendedMovies);
           setCarouselMovies(recommendedMovies?.data?.results || []);
         } else {
           const trendingMovies = await MoviesService.getMoviesList("trending");
+          console.log("Trending movies:", trendingMovies);
           setCarouselMovies(trendingMovies?.results || []);
         }
       } catch (error) {
+        console.error("Error fetching carousel movies:", error);
         setError(error.message);
       }
     };
@@ -137,7 +144,7 @@ function Home() {
   }
 
   return (
-    <main className="bg-background flex flex-1 flex-grow flex-col pb-8">
+    <main className="bg-gray-800 flex flex-1 flex-grow flex-col pb-8">
       <section className="w-full z-0">
         <Carousel
           className=""
@@ -160,7 +167,7 @@ function Home() {
                       <h2 className="text-text font-bold text-2xl lg:text-4xl">
                         {movie.title}
                       </h2>
-                      <button className="bg-secondary hover:bg-primary text-text font-bold lg:text-2xl flex rounded-xl mt-2">
+                      <button className="bg-cyan-500 hover:bg-primary text-text font-bold lg:text-2xl flex rounded-xl mt-2">
                         <Link
                           to={`/movie/${movie.id}`}
                           className="p-2 px-8 w-full"
@@ -223,6 +230,7 @@ const getMovies = async (apiCall) => {
       return await getSavedMoviesInfos(apiCall);
     }
     const response = await MoviesService.getMoviesList(apiCall);
+    console.log(`Response for ${apiCall}:`, response);
     return response || [];
   } catch (error) {
     console.error(`Failed to fetch movies for ${apiCall}:`, error);
@@ -232,7 +240,9 @@ const getMovies = async (apiCall) => {
 
 const getSavedMoviesInfos = async (type) => {
   try {
-    return await MoviesService.getSavedMoviesInfos(type);
+    const response = await MoviesService.getSavedMoviesInfos(type);
+    console.log(`Saved movies for ${type}:`, response);
+    return response;
   } catch (error) {
     console.error(`Failed to fetch saved movies for ${type}:`, error);
     return [];
