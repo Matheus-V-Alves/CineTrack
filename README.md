@@ -1,4 +1,5 @@
 # CINETRACK
+## deu algum erro na api, e não há mais tempo. XD
 
 # CineTrack
 
